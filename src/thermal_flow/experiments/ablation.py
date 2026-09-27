@@ -1,6 +1,6 @@
-"""Generic named-configuration ablation runner (project proposal section 18):
-Flow Matching vs. direct regression, loss terms, adaptation strategy, ODE steps,
-and resolution are all "evaluate each named configuration" studies.
+"""Generic named-configuration ablation runner: Flow Matching vs. direct regression,
+loss terms, adaptation strategy, ODE steps, and resolution are all "evaluate each
+named configuration" studies.
 """
 
 from __future__ import annotations

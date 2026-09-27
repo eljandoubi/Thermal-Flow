@@ -1,6 +1,4 @@
-"""Few-shot sweep orchestration (project proposal section 17):
-10 -> 50 -> 100 -> 500 -> 1000 -> Full thermal pairs.
-"""
+"""Few-shot sweep orchestration: 10 -> 50 -> 100 -> 500 -> 1000 -> Full thermal pairs."""
 
 from __future__ import annotations
 

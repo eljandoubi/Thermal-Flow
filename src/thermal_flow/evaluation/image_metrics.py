@@ -1,4 +1,4 @@
-"""Image-level reconstruction metrics (project proposal section 15)."""
+"""Image-level reconstruction metrics."""
 
 from __future__ import annotations
 

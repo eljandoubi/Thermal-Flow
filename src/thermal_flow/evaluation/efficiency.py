@@ -1,7 +1,6 @@
 """Efficiency metrics: parameter count, model size, inference latency, FLOPs.
 
-Reporting these makes the project's "lightweight" claim measurable (project
-proposal section 19).
+Reporting these makes the project's "lightweight" claim measurable.
 """
 
 from __future__ import annotations

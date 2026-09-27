@@ -1,5 +1,5 @@
 # Few-shot sweep setting: restrict training to `few_shot.num_samples` thermal
-# pairs (see project proposal section 17: 10 / 50 / 100 / 500 / 1000 / Full).
+# pairs (10 / 50 / 100 / 500 / 1000 / Full).
 # Override few_shot.num_samples per run and load with
 # TrainingConfig.from_yaml("configs/fewshot.yaml") + train_fewshot.run_fewshot_training.
 dataset:

@@ -1,4 +1,4 @@
-"""Efficiency benchmarking across multiple models (project proposal section 19)."""
+"""Efficiency benchmarking across multiple models."""
 
 from __future__ import annotations
 

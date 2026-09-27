@@ -1,4 +1,4 @@
-"""Baseline 3 - Pix2Pix conditional GAN, RGB -> Thermal (proposal section 14).
+"""Baseline 3 - Pix2Pix conditional GAN, RGB -> Thermal.
 
 A well-established image-to-image translation baseline: a U-Net generator trained
 against a conditional PatchGAN discriminator.

@@ -1,4 +1,4 @@
-"""Line/bar plots for experiment result tables (project proposal sections 17-19)."""
+"""Line/bar plots for experiment result tables."""
 
 from __future__ import annotations
 

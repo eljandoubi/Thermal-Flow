@@ -1,4 +1,4 @@
-"""Combined Flow Matching + structural + edge objective from the project proposal.
+"""Combined Flow Matching + structural + edge objective.
 
 L = L_FM + lambda_ssim * L_SSIM + lambda_edge * L_edge
 """

@@ -1,4 +1,4 @@
-"""Baseline 2 - standard encoder-decoder U-Net, RGB -> Thermal (proposal section 14).
+"""Baseline 2 - standard encoder-decoder U-Net, RGB -> Thermal.
 
 Unlike `thermal_flow.models.unet.ConditionalUNet`, this is a plain, non-time-
 conditioned direct regressor: it tests whether Flow Matching provides an advantage
