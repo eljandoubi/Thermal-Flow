@@ -16,6 +16,13 @@ few_shot:
   num_samples: 100
   seed: 0
 
+# Weights & Biases tracking is off by default; flip enabled: true (and `uv run
+# wandb login` once) to log train/loss curves and hyperparameters per run.
+wandb:
+  enabled: false
+  project: thermal-flow
+  mode: online
+
 batch_size: 4
 num_epochs: 50
 num_workers: 4
