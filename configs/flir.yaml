@@ -19,6 +19,13 @@ loss:
   lambda_ssim: 0.1
   lambda_edge: 0.05
 
+# Weights & Biases tracking is off by default; flip enabled: true (and `uv run
+# wandb login` once) to log train/loss curves and hyperparameters per run.
+wandb:
+  enabled: false
+  project: thermal-flow
+  mode: online
+
 batch_size: 8
 num_epochs: 100
 num_workers: 4

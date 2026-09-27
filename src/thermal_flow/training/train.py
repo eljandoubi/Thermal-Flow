@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import asdict
 from pathlib import Path
 
 import torch
@@ -14,6 +15,7 @@ from thermal_flow.models.flow_matching import ConditionalFlowMatching
 from thermal_flow.models.unet import ConditionalUNet
 from thermal_flow.training.checkpoint import save_checkpoint
 from thermal_flow.training.config import TrainingConfig
+from thermal_flow.training.tracking import WandbLogger
 
 
 def build_model(config: TrainingConfig) -> ConditionalFlowMatching:
@@ -86,9 +88,18 @@ def run_training(config: TrainingConfig) -> ConditionalFlowMatching:
         num_workers=config.num_workers,
     )
 
-    for epoch in range(config.num_epochs):
-        train_one_epoch(model, loss_fn, dataloader, optimizer, device)
-        checkpoint_path = Path(config.checkpoint_dir) / f"epoch_{epoch:04d}.pt"
-        save_checkpoint(checkpoint_path, model, optimizer, step=epoch)
+    with WandbLogger(
+        enabled=config.wandb.enabled,
+        project=config.wandb.project,
+        name=config.wandb.name,
+        entity=config.wandb.entity,
+        mode=config.wandb.mode,
+        config=asdict(config),
+    ) as logger:
+        for epoch in range(config.num_epochs):
+            avg_loss = train_one_epoch(model, loss_fn, dataloader, optimizer, device)
+            logger.log({"train/loss": avg_loss}, step=epoch)
+            checkpoint_path = Path(config.checkpoint_dir) / f"epoch_{epoch:04d}.pt"
+            save_checkpoint(checkpoint_path, model, optimizer, step=epoch)
 
     return model

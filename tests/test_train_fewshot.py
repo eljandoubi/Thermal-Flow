@@ -38,3 +38,29 @@ def test_run_fewshot_training_respects_num_samples_and_checkpoints(tmp_path: Pat
 
     assert sum(p.numel() for p in model.parameters()) > 0
     assert (tmp_path / "checkpoints" / "fewshot_epoch_0000.pt").exists()
+
+
+def test_run_fewshot_training_with_wandb_enabled_in_disabled_mode(tmp_path: Path) -> None:
+    _make_dataset(tmp_path, n=4)
+    config = TrainingConfig.from_dict(
+        {
+            "dataset": {
+                "root": str(tmp_path),
+                "image_size": 8,
+                "rgb_channels": 3,
+                "thermal_channels": 3,
+            },
+            "model": {"base_channels": 8, "time_dim": 8},
+            "few_shot": {"num_samples": 2, "seed": 0},
+            "wandb": {"enabled": True, "project": "thermal-flow-tests", "mode": "disabled"},
+            "batch_size": 2,
+            "num_epochs": 1,
+            "num_workers": 0,
+            "device": "cpu",
+            "checkpoint_dir": str(tmp_path / "checkpoints"),
+        }
+    )
+
+    model = run_fewshot_training(config)
+
+    assert sum(p.numel() for p in model.parameters()) > 0

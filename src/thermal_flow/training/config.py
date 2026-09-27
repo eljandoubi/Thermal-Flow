@@ -47,12 +47,22 @@ class FewShotConfig:
 
 
 @dataclass
+class WandbConfig:
+    enabled: bool = False
+    project: str = "thermal-flow"
+    entity: str | None = None
+    name: str | None = None
+    mode: str = "online"  # "online", "offline", or "disabled"
+
+
+@dataclass
 class TrainingConfig:
     dataset: DatasetConfig
     model: ModelConfig = field(default_factory=ModelConfig)
     optimizer: OptimizerConfig = field(default_factory=OptimizerConfig)
     loss: LossConfig = field(default_factory=LossConfig)
     few_shot: FewShotConfig = field(default_factory=FewShotConfig)
+    wandb: WandbConfig = field(default_factory=WandbConfig)
     batch_size: int = 8
     num_epochs: int = 100
     num_workers: int = 4
@@ -68,8 +78,15 @@ class TrainingConfig:
         optimizer = OptimizerConfig(**raw.pop("optimizer", {}))
         loss = LossConfig(**raw.pop("loss", {}))
         few_shot = FewShotConfig(**raw.pop("few_shot", {}))
+        wandb = WandbConfig(**raw.pop("wandb", {}))
         return cls(
-            dataset=dataset, model=model, optimizer=optimizer, loss=loss, few_shot=few_shot, **raw
+            dataset=dataset,
+            model=model,
+            optimizer=optimizer,
+            loss=loss,
+            few_shot=few_shot,
+            wandb=wandb,
+            **raw,
         )
 
     @classmethod
