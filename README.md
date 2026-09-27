@@ -154,7 +154,7 @@ src/thermal_flow/
 ├── models/                # timestep embedding, conditional U-Net, flow matching, adapter
 ├── inference/             # Euler/RK4 ODE solvers, end-to-end sampling
 ├── losses/                # flow matching, SSIM, edge losses, combined objective
-├── datasets/              # FLIR/LLVIP loaders, preprocessing, few-shot subsampling
+├── datasets/              # FLIR/LLVIP loaders, preprocessing, few-shot subsampling, data prep CLI
 ├── baselines/             # CNN, U-Net, Pix2Pix baselines
 ├── training/               # config schema, checkpointing, tracking, train/fewshot/adapter loops
 ├── evaluation/             # image metrics, efficiency, downstream detection
@@ -180,6 +180,7 @@ All commands below are also available as `just` recipes (`just --list`):
 | `uv run ruff format --check .`  | `just format-check` | Check formatting without changes   |
 | -                               | `just ci`         | lint + format-check + test (= CI)    |
 | `uv run wandb login`            | `just wandb-login`| One-time Weights & Biases login      |
+| `uv run thermal-flow-data ...`  | `just data ...`   | Download/convert datasets (see below) |
 | -                               | `just clean`      | Remove caches/coverage/build output  |
 
 Continuous integration ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the exact
@@ -191,14 +192,31 @@ same `just ci` steps on every push and pull request, across Python 3.11 and 3.12
 - **LLVIP** (secondary): aligned visible/infrared pedestrian imagery, used to validate that the
   approach generalizes beyond one dataset.
 
-Both require obtaining the data from their respective providers directly; dataset loaders
-document the expected on-disk layout (`root/<split>/{rgb,thermal}/<name>.ext`) and are
+Dataset loaders expect the normalized layout `root/<split>/{rgb,thermal}/<name>.ext` and are
 unit-tested against small synthetic fixtures, so the test suite never needs the real datasets.
+The `thermal-flow-data` command (`uv sync --extra data`, then `just data <command>` or
+`uv run thermal-flow-data <command>`) converts each raw download into that layout.
+
+**LLVIP** is a single archive shared directly from the dataset's own Google Drive, no
+registration required:
+
+```bash
+just data download-llvip --output data/llvip_raw
+just data convert-llvip --source data/llvip_raw/LLVIP.zip --output data/llvip
+```
+
+**FLIR ADAS** requires registering on the vendor's site to get a download link. Once it is
+extracted, reorganize it the same way; its folder names have varied across releases, so use
+`--dry-run` first and override `--rgb-dirname`/`--thermal-dirname`/`--splits` if it reports no
+matches:
+
+```bash
+just data convert-flir --source path/to/extracted/flir --output data/flir --dry-run
+just data convert-flir --source path/to/extracted/flir --output data/flir
+```
 
 Object detection evaluation is detector-agnostic: `evaluate_detector` accepts any
-torchvision-style detector, so no pretrained weights are bundled. There is currently no
-command-line interface; the training and experiment entry points are plain importable Python
-functions.
+torchvision-style detector, so no pretrained weights are bundled.
 
 ## License
 
