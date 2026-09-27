@@ -50,43 +50,50 @@ uv run ruff format --check .
 
 ## Project status
 
-Built step by step; each milestone below ships with its own unit tests.
+Built step by step; every milestone below shipped with its own unit tests and its own commit.
 
 - [x] **M0 — Project scaffolding**: uv-managed package (`thermal_flow`), pytest + ruff, device
       selection utility, README.
-- [ ] **M1 — Flow Matching core**: time embedding, lightweight conditional U-Net, probability path
+- [x] **M1 — Flow Matching core**: time embedding, lightweight conditional U-Net, probability path
       / velocity target, Flow Matching loss.
-- [ ] **M2 — ODE sampler / inference**: Euler solver integrating RGB → thermal, end-to-end sampling.
-- [ ] **M3 — Parameter-efficient adapter**: frozen backbone + trainable bottleneck adapter for
+- [x] **M2 — ODE sampler / inference**: Euler/RK4 solvers integrating RGB → thermal, end-to-end
+      sampling.
+- [x] **M3 — Parameter-efficient adapter**: frozen backbone + trainable bottleneck adapter for
       few-shot fine-tuning.
-- [ ] **M4 — Additional losses**: SSIM + edge-preservation losses, combined weighted objective.
-- [ ] **M5 — Dataset pipeline**: FLIR ADAS / LLVIP loaders, preprocessing, fixed val/test splits,
+- [x] **M4 — Additional losses**: SSIM + edge-preservation losses, combined weighted objective.
+- [x] **M5 — Dataset pipeline**: FLIR ADAS / LLVIP loaders, preprocessing, fixed val/test splits,
       few-shot subsampling protocol.
-- [ ] **M6 — Baselines**: CNN regression, U-Net, Pix2Pix (generator + discriminator).
-- [ ] **M7 — Training pipeline**: full-supervision / few-shot / adapter-finetuning training loops,
+- [x] **M6 — Baselines**: CNN regression, U-Net, Pix2Pix (generator + discriminator).
+- [x] **M7 — Training pipeline**: full-supervision / few-shot / adapter-finetuning training loops,
       YAML configs, checkpointing.
-- [ ] **M8 — Evaluation metrics**: MAE, RMSE, PSNR, SSIM, efficiency (params/VRAM/time/FLOPs).
-- [ ] **M9 — Downstream detection evaluation**: mAP@50, mAP@50:95, precision/recall on
+- [x] **M8 — Evaluation metrics**: MAE, RMSE, PSNR, SSIM, efficiency (params/size/time/FLOPs).
+- [x] **M9 — Downstream detection evaluation**: mAP@50, mAP@50:95, precision/recall on
       real/synthetic/RGB thermal inputs.
-- [ ] **M10 — Experiments, ablations & visualization**: few-shot curves, ablation studies,
-      qualitative comparisons, plots.
+- [x] **M10 — Experiments, ablations & visualization**: few-shot sweep/ablation orchestration,
+      efficiency benchmarking, qualitative comparisons, plots.
 
-## Planned project structure
+What's intentionally **not** included: the actual FLIR ADAS/LLVIP image files (must be obtained
+from their providers and converted into the expected layout, see `Datasets` below), a trained
+pretrained object detector (`evaluate_detector` is detector-agnostic — plug in any torchvision-style
+detector), and a CLI/argparse wrapper (the training/experiment entry points are plain importable
+functions, exercised directly from Python or a notebook).
+
+## Project structure
 
 ```
 src/thermal_flow/
-├── device.py            # compute device selection (M0)
-├── models/               # encoder, conditional U-Net, flow matching, adapter (M1, M3)
-├── losses/               # flow matching, SSIM, edge losses (M1, M4)
-├── datasets/             # FLIR / LLVIP loaders, preprocessing (M5)
+├── device.py             # compute device selection: cuda > mps > cpu (M0)
+├── models/                # timestep embedding, conditional U-Net, flow matching, adapter (M1, M3)
+├── inference/             # Euler/RK4 ODE solvers, end-to-end sampling (M2)
+├── losses/                # flow matching, SSIM, edge losses, combined objective (M1, M4)
+├── datasets/              # FLIR/LLVIP loaders, preprocessing, few-shot subsampling (M5)
 ├── baselines/             # CNN, U-Net, Pix2Pix baselines (M6)
-├── training/             # train / few-shot / adapter-finetune loops (M7)
-├── inference/             # ODE solver, sampling (M2)
-├── evaluation/           # image metrics, detection, efficiency (M8, M9)
-├── experiments/           # few-shot sweep, ablations, benchmark orchestration (M10)
-└── visualization/         # qualitative comparisons, plots (M10)
-configs/                  # YAML experiment configs (M5+)
-tests/                    # unit tests mirroring the package layout
+├── training/               # config schema, checkpointing, train/fewshot/adapter loops (M7)
+├── evaluation/             # image metrics, efficiency, downstream detection (M8, M9)
+├── experiments/            # fewshot sweep, ablation runner, efficiency benchmarking (M10)
+└── visualization/          # metric plots, qualitative comparison grids (M10)
+configs/                   # example YAML training configs (flir/llvip/fewshot)
+tests/                     # unit tests (flat, one file per module, synthetic data/fixtures only)
 ```
 
 ## Datasets
