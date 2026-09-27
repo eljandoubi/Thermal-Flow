@@ -1,5 +1,5 @@
 """Few-shot subsampling protocol: restrict thermal supervision to N training pairs
-while validation/test splits stay untouched (project proposal section 6).
+while validation/test splits stay untouched.
 """
 
 from __future__ import annotations

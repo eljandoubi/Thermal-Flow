@@ -1,4 +1,4 @@
-"""Baseline 1 - simple CNN regression, RGB -> Thermal (project proposal section 14)."""
+"""Baseline 1 - simple CNN regression, RGB -> Thermal."""
 
 from __future__ import annotations
 

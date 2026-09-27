@@ -1,6 +1,4 @@
-"""Qualitative RGB / real-thermal / synthetic-thermal comparison grids
-(project proposal section 23: visualization/qualitative.py).
-"""
+"""Qualitative RGB / real-thermal / synthetic-thermal comparison grids."""
 
 from __future__ import annotations
 

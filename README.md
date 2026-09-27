@@ -26,7 +26,6 @@
 - [Hardware / device notes](#hardware--device-notes)
 - [Project structure](#project-structure)
 - [Development](#development)
-- [Project status](#project-status)
 - [Datasets](#datasets)
 - [License](#license)
 
@@ -40,9 +39,6 @@ functionally (does it help a downstream object detector?).
 
 > **Research question:** Can a lightweight conditional Flow Matching model learn a useful
 > RGB-to-thermal mapping when only a small amount of paired thermal data is available?
-
-The full research proposal (motivation, architecture, training pipeline, ablations, evaluation
-plan) lives in `tmp/` locally and is intentionally not tracked in git.
 
 ## Pipeline
 
@@ -60,22 +56,22 @@ flowchart LR
 
 ## Highlights
 
-- **Lightweight by design** — a ~5-15M parameter conditional U-Net, benchmarked (params, size,
+- **Lightweight by design.** A ~5-15M parameter conditional U-Net, benchmarked (params, size,
   FLOPs, images/sec) via [`evaluation.efficiency`](src/thermal_flow/evaluation/efficiency.py).
-- **Few-shot native** — a deterministic, seeded subsampling protocol
+- **Few-shot native.** A deterministic, seeded subsampling protocol
   (10 / 50 / 100 / 500 / 1000 / Full) plus a parameter-efficient bottleneck adapter for
   cheap fine-tuning on a handful of thermal pairs.
-- **Three baselines included** — CNN regression, U-Net and Pix2Pix, so Flow Matching is always
+- **Three baselines included.** CNN regression, U-Net and Pix2Pix, so Flow Matching is always
   evaluated against established alternatives, not in isolation.
-- **Trustworthy evaluation** — image-level metrics plus COCO-style downstream detection
+- **Trustworthy evaluation.** Image-level metrics plus COCO-style downstream detection
   metrics (mAP@50, mAP@50:95, precision, recall) via `torchmetrics`.
-- **Runs everywhere** — device selection (CUDA → MPS → CPU) is automatic; developed on
-  Apple Silicon, trains on an NVIDIA GPU with zero config changes (see below).
-- **Reproducible tooling** — `uv`-managed environment, `ruff` lint/format, `pytest` (100+
+- **Runs everywhere.** Device selection (CUDA, then Apple MPS, then CPU) is automatic.
+  Developed on Apple Silicon, trains on an NVIDIA GPU with zero config changes (see below).
+- **Reproducible tooling.** `uv`-managed environment, `ruff` lint/format, `pytest` (100+
   tests on synthetic fixtures, no real dataset required), GitHub Actions CI, and a `justfile`
   for one-command workflows.
-- **Optional experiment tracking** — plug in [Weights & Biases](https://wandb.ai/) with a
-  single config flag; fully disabled (and dependency-free at import time) by default.
+- **Optional experiment tracking.** Plug in [Weights & Biases](https://wandb.ai/) with a
+  single config flag. Fully disabled (and dependency-free at import time) by default.
 
 ## Quickstart
 
@@ -145,7 +141,7 @@ machine**. No special configuration is needed to get there:
   CUDA-capable Linux wheels for `torch` (with the matching `nvidia-*` runtime packages) alongside
   the macOS build. Running `uv sync` on the GPU machine installs the CUDA build automatically.
 - All code selects its compute device through [`thermal_flow.device.get_device`](src/thermal_flow/device.py),
-  which prefers CUDA, then Apple MPS, then CPU — the same code runs unmodified on both machines.
+  which prefers CUDA, then Apple MPS, then CPU, so the same code runs unmodified on both machines.
 - If the GPU machine's driver doesn't support the CUDA version bundled by default, pin a specific
   `pytorch-cuXXX` index per [uv's PyTorch guide](https://docs.astral.sh/uv/guides/integration/pytorch/);
   not required out of the box.
@@ -182,47 +178,29 @@ All commands below are also available as `just` recipes (`just --list`):
 | `uv run ruff check --fix .`     | `just lint-fix`   | Lint, auto-fixing what it can        |
 | `uv run ruff format .`          | `just format`     | Format                               |
 | `uv run ruff format --check .`  | `just format-check` | Check formatting without changes   |
-| —                               | `just ci`         | lint + format-check + test (= CI)    |
+| -                               | `just ci`         | lint + format-check + test (= CI)    |
 | `uv run wandb login`            | `just wandb-login`| One-time Weights & Biases login      |
-| —                               | `just clean`      | Remove caches/coverage/build output  |
+| -                               | `just clean`      | Remove caches/coverage/build output  |
 
 Continuous integration ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the exact
 same `just ci` steps on every push and pull request, across Python 3.11 and 3.12.
 
-## Project status
-
-Built step by step; every milestone below shipped with its own unit tests and its own commit.
-
-| Milestone | Description |
-| --- | --- |
-| M0 | Project scaffolding: uv-managed package, pytest + ruff, device selection, README |
-| M1 | Flow Matching core: time embedding, conditional U-Net, probability path, FM loss |
-| M2 | ODE sampler / inference: Euler/RK4 solvers, end-to-end sampling |
-| M3 | Parameter-efficient bottleneck adapter for few-shot fine-tuning |
-| M4 | SSIM + edge-preservation losses, combined weighted objective |
-| M5 | FLIR ADAS / LLVIP dataset pipeline, preprocessing, few-shot subsampling protocol |
-| M6 | Baselines: CNN regression, U-Net, Pix2Pix (generator + discriminator) |
-| M7 | Training pipeline: config schema, checkpointing, full/few-shot/adapter loops |
-| M8 | Evaluation metrics: MAE, RMSE, PSNR, SSIM, efficiency (params/size/time/FLOPs) |
-| M9 | Downstream detection evaluation: mAP@50, mAP@50:95, precision/recall |
-| M10 | Experiments, ablations & visualization: sweeps, benchmarking, plots |
-
-All ten milestones are complete. What's intentionally **not** included: the actual FLIR
-ADAS/LLVIP image files (see [Datasets](#datasets)), a trained/pretrained object detector
-(`evaluate_detector` is detector-agnostic — plug in any torchvision-style detector), and a
-CLI/argparse wrapper (the training/experiment entry points are plain importable functions).
-
 ## Datasets
 
-- **FLIR ADAS** (primary) — paired RGB/thermal automotive imagery with object annotations.
-- **LLVIP** (secondary) — aligned visible/infrared pedestrian imagery, used to validate that the
+- **FLIR ADAS** (primary): paired RGB/thermal automotive imagery with object annotations.
+- **LLVIP** (secondary): aligned visible/infrared pedestrian imagery, used to validate that the
   approach generalizes beyond one dataset.
 
 Both require obtaining the data from their respective providers directly; dataset loaders
 document the expected on-disk layout (`root/<split>/{rgb,thermal}/<name>.ext`) and are
 unit-tested against small synthetic fixtures, so the test suite never needs the real datasets.
 
+Object detection evaluation is detector-agnostic: `evaluate_detector` accepts any
+torchvision-style detector, so no pretrained weights are bundled. There is currently no
+command-line interface; the training and experiment entry points are plain importable Python
+functions.
+
 ## License
 
-Apache License 2.0 — see [LICENSE](LICENSE).
+Apache License 2.0. See [LICENSE](LICENSE).
 

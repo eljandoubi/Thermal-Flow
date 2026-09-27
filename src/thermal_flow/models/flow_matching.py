@@ -9,7 +9,7 @@ from torch import nn
 
 class ConditionalFlowMatching(nn.Module):
     """Wraps a velocity network v_theta(x_t, t, x_rgb) and implements the conditional
-    Flow Matching objective from the project proposal:
+    Flow Matching objective:
 
         x_t = (1 - t) * x_rgb + t * x_thermal        (linear probability path)
         u_t = x_thermal - x_rgb                       (target velocity)

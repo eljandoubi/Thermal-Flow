@@ -1,5 +1,5 @@
 """Few-shot training entry point: restrict the training split to N thermal pairs
-(project proposal section 17: 10 / 50 / 100 / 500 / 1000 / Full).
+(10 / 50 / 100 / 500 / 1000 / Full).
 """
 
 from __future__ import annotations

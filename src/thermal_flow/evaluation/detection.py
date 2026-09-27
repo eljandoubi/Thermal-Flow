@@ -1,4 +1,4 @@
-"""Downstream object-detection evaluation (project proposal section 16).
+"""Downstream object-detection evaluation.
 
 Compares how well a detector performs on real thermal, synthetic (generated)
 thermal, and RGB inputs, using COCO-style mAP (via torchmetrics) plus simple
@@ -97,7 +97,7 @@ def evaluate_detector(
     `detector` follows the torchvision detection API: given a list of (C, H, W)
     image tensors, it returns a list of dicts with "boxes"/"scores"/"labels".
     Call this once per input type (real thermal / synthetic thermal / RGB) with
-    the same `detector` and `targets` to reproduce the section 16 comparison.
+    the same `detector` and `targets` to compare how each one performs.
     """
     preds = detector(images)
     metrics = mean_average_precision(preds, targets)

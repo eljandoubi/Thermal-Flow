@@ -57,7 +57,7 @@ class ConditionalUNet(nn.Module):
     channel-wise at the input; the output has `thermal_channels` channels, matching
     the target velocity `x_thermal - x_rgb`. Input height/width must be divisible by
     4 (two downsampling stages). `base_channels` controls model capacity: the default
-    lands in the ~5-15M parameter "lightweight" range from the project proposal.
+    lands in the ~5-15M parameter "lightweight" range.
 
     If `use_adapter` is set, a `BottleneckAdapter` is inserted after the bottleneck
     ResBlock so the model can later be few-shot finetuned via

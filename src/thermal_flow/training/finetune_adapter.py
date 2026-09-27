@@ -1,5 +1,5 @@
 """Adapter finetuning entry point: freeze the pretrained backbone, train only the
-bottleneck adapter on a small number of thermal pairs (project proposal section 10).
+bottleneck adapter on a small number of thermal pairs.
 """
 
 from __future__ import annotations
