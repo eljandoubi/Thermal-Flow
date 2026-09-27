@@ -1,0 +1,25 @@
+# Secondary-dataset validation on LLVIP (aligned visible/infrared pairs).
+# Prepare the raw download into root/<split>/{rgb,thermal}/<name>.jpg first
+# (see thermal_flow.datasets.llvip.LLVIPDataset).
+dataset:
+  root: data/llvip
+  image_size: 256
+  rgb_channels: 3
+  thermal_channels: 3
+
+model:
+  base_channels: 96
+  time_dim: 128
+
+optimizer:
+  lr: 1.0e-4
+  weight_decay: 0.0
+
+loss:
+  lambda_ssim: 0.1
+  lambda_edge: 0.05
+
+batch_size: 8
+num_epochs: 100
+num_workers: 4
+checkpoint_dir: checkpoints/llvip

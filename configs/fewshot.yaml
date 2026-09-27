@@ -1,0 +1,22 @@
+# Few-shot sweep setting: restrict training to `few_shot.num_samples` thermal
+# pairs (see project proposal section 17: 10 / 50 / 100 / 500 / 1000 / Full).
+# Override few_shot.num_samples per run and load with
+# TrainingConfig.from_yaml("configs/fewshot.yaml") + train_fewshot.run_fewshot_training.
+dataset:
+  root: data/flir
+  image_size: 256
+  rgb_channels: 3
+  thermal_channels: 3
+
+model:
+  base_channels: 96
+  time_dim: 128
+
+few_shot:
+  num_samples: 100
+  seed: 0
+
+batch_size: 4
+num_epochs: 50
+num_workers: 4
+checkpoint_dir: checkpoints/fewshot_100
