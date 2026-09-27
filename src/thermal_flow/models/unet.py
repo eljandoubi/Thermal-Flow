@@ -5,6 +5,7 @@ from __future__ import annotations
 import torch
 from torch import nn
 
+from thermal_flow.models.adapter import BottleneckAdapter
 from thermal_flow.models.timestep import TimeEmbedding
 
 
@@ -57,6 +58,10 @@ class ConditionalUNet(nn.Module):
     the target velocity `x_thermal - x_rgb`. Input height/width must be divisible by
     4 (two downsampling stages). `base_channels` controls model capacity: the default
     lands in the ~5-15M parameter "lightweight" range from the project proposal.
+
+    If `use_adapter` is set, a `BottleneckAdapter` is inserted after the bottleneck
+    ResBlock so the model can later be few-shot finetuned via
+    `thermal_flow.models.adapter.freeze_for_adapter_finetuning`.
     """
 
     def __init__(
@@ -65,11 +70,14 @@ class ConditionalUNet(nn.Module):
         rgb_channels: int = 3,
         base_channels: int = 96,
         time_dim: int = 128,
+        use_adapter: bool = False,
+        adapter_dim: int = 16,
     ) -> None:
         super().__init__()
         self.thermal_channels = thermal_channels
         self.time_embedding = TimeEmbedding(time_dim)
         emb_dim = self.time_embedding.out_dim
+        self.adapter = BottleneckAdapter(base_channels, adapter_dim) if use_adapter else None
 
         self.in_conv = nn.Conv2d(
             thermal_channels + rgb_channels, base_channels, kernel_size=3, padding=1
@@ -99,6 +107,8 @@ class ConditionalUNet(nn.Module):
         h = self.downsample2(h2)
 
         h = self.bottleneck(h, t_emb)
+        if self.adapter is not None:
+            h = self.adapter(h)
 
         h = self.up1(self.upsample1(h) + h2, t_emb)
         h = self.up2(self.upsample2(h) + h1, t_emb)
