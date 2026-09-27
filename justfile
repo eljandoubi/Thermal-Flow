@@ -4,9 +4,9 @@
 default:
     @just --list
 
-# Install/refresh the uv-managed environment
+# Install/refresh the uv-managed environment (includes the optional data-prep extra)
 sync:
-    uv sync
+    uv sync --extra data
 
 # Run the test suite
 test *args:
@@ -34,6 +34,10 @@ ci: lint format-check test
 # Log in to Weights & Biases (only needed once per machine)
 wandb-login:
     uv run wandb login
+
+# Prepare a dataset: e.g. `just data download-llvip --output data/llvip_raw`
+data *args:
+    uv run thermal-flow-data {{ args }}
 
 # Remove caches, coverage data and build artifacts
 clean:
