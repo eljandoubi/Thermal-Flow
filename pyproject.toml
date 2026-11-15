@@ -5,7 +5,7 @@ description = "Few-shot RGB-to-Thermal domain adaptation using lightweight condi
 authors = [
     { name = "AbdelKarim ELJANDOUBI", email = "78537694+eljandoubi@users.noreply.github.com" }
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.11.5"
 dependencies = [
     "faster-coco-eval>=1.8.0",
     "matplotlib>=3.11.2",
