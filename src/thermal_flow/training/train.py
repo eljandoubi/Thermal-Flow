@@ -6,7 +6,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 import torch
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 
 from thermal_flow.datasets.common import PairedRGBThermalDataset
 from thermal_flow.device import get_device
@@ -65,21 +65,29 @@ def train_one_epoch(
     return total_loss / num_batches
 
 
-def run_training(config: TrainingConfig) -> ConditionalFlowMatching:
-    """Full-supervision training entry point (loads the entire training split)."""
-    device = get_device(config.device)
-    model = build_model(config).to(device)
-    optimizer = build_optimizer(model, config)
-    loss_fn = CombinedFlowMatchingLoss(
-        lambda_ssim=config.loss.lambda_ssim, lambda_edge=config.loss.lambda_edge
-    )
-
-    train_dataset = PairedRGBThermalDataset(
+def load_train_dataset(config: TrainingConfig) -> PairedRGBThermalDataset:
+    return PairedRGBThermalDataset(
         config.dataset.root,
         split=config.dataset.train_split,
         image_size=config.dataset.image_size,
         rgb_channels=config.dataset.rgb_channels,
         thermal_channels=config.dataset.thermal_channels,
+    )
+
+
+def fit(
+    config: TrainingConfig,
+    model: ConditionalFlowMatching,
+    train_dataset: Dataset,
+    device: torch.device,
+    checkpoint_prefix: str = "epoch",
+) -> ConditionalFlowMatching:
+    """Train `model` for `config.num_epochs`, logging the loss and saving a
+    checkpoint named `<checkpoint_prefix>_<epoch>.pt` after every epoch.
+    """
+    optimizer = build_optimizer(model, config)
+    loss_fn = CombinedFlowMatchingLoss(
+        lambda_ssim=config.loss.lambda_ssim, lambda_edge=config.loss.lambda_edge
     )
     dataloader = DataLoader(
         train_dataset,
@@ -99,7 +107,14 @@ def run_training(config: TrainingConfig) -> ConditionalFlowMatching:
         for epoch in range(config.num_epochs):
             avg_loss = train_one_epoch(model, loss_fn, dataloader, optimizer, device)
             logger.log({"train/loss": avg_loss}, step=epoch)
-            checkpoint_path = Path(config.checkpoint_dir) / f"epoch_{epoch:04d}.pt"
+            checkpoint_path = Path(config.checkpoint_dir) / f"{checkpoint_prefix}_{epoch:04d}.pt"
             save_checkpoint(checkpoint_path, model, optimizer, step=epoch)
 
     return model
+
+
+def run_training(config: TrainingConfig) -> ConditionalFlowMatching:
+    """Full-supervision training entry point (loads the entire training split)."""
+    device = get_device(config.device)
+    model = build_model(config).to(device)
+    return fit(config, model, load_train_dataset(config), device)
