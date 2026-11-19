@@ -1,0 +1,31 @@
+{
+  "cnn": {
+    "num_parameters": 77379.0,
+    "model_size_mb": 0.2951774597167969,
+    "flops": 2529165312.0,
+    "seconds_per_call": 0.0005673249999745167,
+    "images_per_second": 1762.6580884764787
+  },
+  "unet": {
+    "num_parameters": 1862979.0,
+    "model_size_mb": 7.106700897216797,
+    "flops": 12679380992.0,
+    "seconds_per_call": 0.00229668230003881,
+    "images_per_second": 435.4106791274969
+  },
+  "pix2pix": {
+    "num_parameters": 1862979.0,
+    "model_size_mb": 7.106700897216797,
+    "flops": 12679380992.0,
+    "seconds_per_call": 0.0029954016999909072,
+    "images_per_second": 333.84503988331033
+  },
+  "flow_matching": {
+    "num_parameters": 1073731.0,
+    "model_size_mb": 4.095958709716797,
+    "flops": 7410221056.0,
+    "seconds_per_call": 0.002956519799954549,
+    "images_per_second": 338.23551596555285,
+    "network_evaluations": 8.0
+  }
+}

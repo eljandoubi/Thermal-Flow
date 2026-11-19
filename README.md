@@ -22,6 +22,7 @@
 - [Highlights](#highlights)
 - [Quickstart](#quickstart)
 - [Usage](#usage)
+- [Study: few-shot RGB to thermal on LLVIP](#study-few-shot-rgb-to-thermal-on-llvip)
 - [Configuration & experiment tracking](#configuration--experiment-tracking)
 - [Hardware / device notes](#hardware--device-notes)
 - [Project structure](#project-structure)
@@ -113,6 +114,70 @@ config = TrainingConfig.from_yaml("configs/fewshot.yaml")
 model = run_fewshot_training(config)
 ```
 
+## Study: few-shot RGB to thermal on LLVIP
+
+`thermal-flow-study` trains the four methods on the same pairs, with the same number of optimizer steps, and scores them on the same test images, so Flow Matching is compared with the baselines and not on its own.
+
+| method | what it is |
+| --- | --- |
+| `cnn` | plain convolutional regression, L1 loss |
+| `unet` | U-Net regression, L1 loss |
+| `pix2pix` | U-Net generator with a PatchGAN discriminator (least-squares GAN loss, L1 weight 100) |
+| `flow_matching` | the conditional Flow Matching U-Net of this repository, 8 ODE steps at inference |
+
+```bash
+uv run thermal-flow-study --root data/llvip --sizes 10 100 1000 full \
+  --methods cnn unet pix2pix flow_matching --steps 2000 --batch-size 16 \
+  --image-size 128 --base-channels 64 --test-images 500 --seeds 0 \
+  --output results/llvip_study
+```
+
+The pairs are drawn from the 12,025 LLVIP training pairs with the seeded subsampling of [`datasets.fewshot`](src/thermal_flow/datasets/fewshot.py). The test set is 500 evenly spaced pairs of the 3,463 LLVIP test pairs, at 128 x 128. The command writes `study.json` (one row per run), `study.md`, `efficiency.json`, a PSNR-versus-pairs curve per method and side-by-side grids; [`results/llvip_study/`](results/llvip_study/) keeps the tables and two grids.
+
+### Results
+
+One run per cell (seed 0), 2,000 optimizer steps of batch size 16, on one free Colab T4. MAE, RMSE and PSNR are on images scaled to [0, 1]; the last row group trains on all 12,025 pairs.
+
+| method | pairs | MAE | RMSE | PSNR (dB) | SSIM |
+| --- | --- | --- | --- | --- | --- |
+| cnn | 10 | 0.1871 | 0.2316 | 12.76 | 0.227 |
+| unet | 10 | 0.2019 | 0.2522 | 12.01 | 0.238 |
+| pix2pix | 10 | 0.2058 | 0.2578 | 11.80 | 0.191 |
+| flow_matching | 10 | 0.1905 | 0.2366 | 12.54 | 0.258 |
+| cnn | 100 | 0.1633 | 0.2069 | 13.72 | 0.312 |
+| unet | 100 | 0.1817 | 0.2297 | 12.79 | 0.273 |
+| pix2pix | 100 | 0.1797 | 0.2298 | 12.79 | 0.245 |
+| flow_matching | 100 | 0.1692 | 0.2119 | 13.49 | 0.296 |
+| cnn | 1000 | 0.1656 | 0.2069 | 13.71 | 0.327 |
+| unet | 1000 | 0.1683 | 0.2116 | 13.51 | 0.309 |
+| pix2pix | 1000 | 0.1771 | 0.2256 | 12.95 | 0.242 |
+| flow_matching | 1000 | 0.1677 | 0.2113 | 13.53 | 0.310 |
+| cnn | 12,025 | 0.1644 | 0.2064 | 13.74 | 0.333 |
+| unet | 12,025 | 0.1701 | 0.2168 | 13.30 | 0.302 |
+| pix2pix | 12,025 | 0.1746 | 0.2213 | 13.11 | 0.272 |
+| flow_matching | 12,025 | 0.1782 | 0.2259 | 12.97 | 0.315 |
+
+- The plain CNN has the best PSNR at every training size and the best SSIM from 100 pairs on. Flow Matching has the best SSIM with 10 pairs, is second on both metrics with 100 and 1,000 pairs, and is last on PSNR with all pairs. Pix2Pix has the lowest SSIM at every size.
+- The methods stay within 1 dB of each other at every size, from 11.8 to 13.7 dB. Going from 10 to 100 pairs helps by about 1 dB, and beyond 100 pairs more data changes PSNR by less than 1 dB and not always upward. With one seed per cell, differences of a few tenths of a dB should not be read as a ranking.
+- The synthetic images keep the layout (cars, road edges) but not the intensities: in the grids below, the warm road and the people of the real thermal image come out dark with Flow Matching and blurred with the CNN.
+
+![Flow Matching, 100 pairs](results/llvip_study/grid_flow_matching_100.png)
+
+![CNN, 100 pairs](results/llvip_study/grid_cnn_100.png)
+
+The four test images of each grid are the first four of the test set, taken a few frames apart in one scene.
+
+Cost of one forward pass at 128 x 128 on the T4 (batch size 1, [`efficiency.json`](results/llvip_study/efficiency.json)):
+
+| method | parameters | size (MB) | GFLOPs | passes per second |
+| --- | --- | --- | --- | --- |
+| cnn | 77,379 | 0.30 | 2.5 | 1763 |
+| unet | 1,862,979 | 7.11 | 12.7 | 435 |
+| pix2pix (generator) | 1,862,979 | 7.11 | 12.7 | 334 |
+| flow_matching (network) | 1,073,731 | 4.10 | 7.4 | 338 |
+
+A Flow Matching sample needs 8 network passes, about 42 images per second. The study scores image metrics only (no downstream detector) and trains every method for 2,000 steps only, so the numbers describe that budget, not the best each method can do.
+
 ## Configuration & experiment tracking
 
 Every training entry point (`training.train.run_training`, `training.train_fewshot`,
@@ -202,6 +267,16 @@ registration required:
 
 ```bash
 just data download-llvip --output data/llvip_raw
+just data convert-llvip --source data/llvip_raw/LLVIP.zip --output data/llvip
+```
+
+Google Drive limits downloads of popular files ("Too many users have viewed or downloaded this
+file recently"). When that happens, the 4.0 GB archive is also mirrored on the Hugging Face hub,
+and `convert-llvip` reads it the same way:
+
+```bash
+curl -L --create-dirs -o data/llvip_raw/LLVIP.zip \
+  https://huggingface.co/datasets/jsonhash/LLVIP/resolve/main/LLVIP.zip
 just data convert-llvip --source data/llvip_raw/LLVIP.zip --output data/llvip
 ```
 
